@@ -1,6 +1,7 @@
 # requirements.txt (FINAL VERSION)
 fastapi
 email-validator
+python-multipart
 uvicorn
 gunicorn
 sqlalchemy
