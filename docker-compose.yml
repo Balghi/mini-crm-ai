@@ -1,0 +1,50 @@
+services:
+  # The Database Service
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=notesdb
+    ports:
+      - "5432:5432"
+
+  # The Redis Service
+  redis:
+    image: redis:7
+
+  # The API Service
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/notesdb
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+    depends_on:
+      - db
+      - redis
+
+  # The Celery Worker Service (NEW)
+  worker:
+    build: .
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/notesdb
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:
