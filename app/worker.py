@@ -1,6 +1,5 @@
 import time
 from celery import Celery
-from transformers import pipeline
 
 from app.db.session import SessionLocal
 from app.models.note import Note, NoteStatus
