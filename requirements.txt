@@ -1,4 +1,3 @@
-# requirements.txt (FINAL VERSION)
 fastapi
 email-validator
 python-multipart
@@ -16,4 +15,3 @@ transformers
 torch
 torchvision
 torchaudio
-honcho
