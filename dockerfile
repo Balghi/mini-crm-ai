@@ -1,7 +1,10 @@
+# Dockerfile (FINAL, MOST ROBUST VERSION V2)
+
 # --- STAGE 1: The Builder ---
 # This stage installs dependencies into a virtual environment.
 FROM python:3.11 as builder
 
+# Install system-level build tools. This is needed to compile psycopg2 from source.
 RUN apt-get update && apt-get install -y build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -13,20 +16,25 @@ ENV PATH="/venv/bin:$PATH"
 # Copy only the requirements file
 COPY requirements.txt .
 
-# Install CPU-only PyTorch FIRST, then the rest of the requirements.
-# This is the key to reducing the image size.
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r requirements.txt
+# Upgrade pip to ensure we have the latest dependency resolver
+RUN pip install --upgrade pip
+
+# Install all packages in a single, robust command.
+# --extra-index-url adds the PyTorch CPU repo as an additional source,
+# allowing pip to resolve all dependencies from PyPI and the CPU-only repo at once.
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 
 # --- STAGE 2: The Final Image ---
 # This stage creates the small, final image for production.
 FROM python:3.11-slim as final
 
+# Install the PostgreSQL runtime client library.
+RUN apt-get update && apt-get install -y libpq5 && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy the virtual environment from the builder stage.
-# This contains all our installed packages but none of the build bloat.
 COPY --from=builder /venv /venv
 
 # Copy the application code
