@@ -17,7 +17,7 @@ def get_summarizer():
     if summarizer is None:
         # This will download the model on the first run.
         # Using a smaller model for quicker setup.
-        summarizer = pipeline("summarization", model="t5-small")
+        summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-6-6")
     return summarizer
 
 @celery_app.task(bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 3, 'countdown': 5})
