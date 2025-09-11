@@ -2,6 +2,8 @@
 # This stage installs dependencies into a virtual environment.
 FROM python:3.11 as builder
 
+RUN apt-get update && apt-get install -y build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Create a virtual environment
